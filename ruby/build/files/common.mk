@@ -172,7 +172,7 @@ JIT_PRODUCT_SOURCE_FILES+=\
     $(JIT_OMR_DIRTY_DIR)/optimizer/DataFlowAnalysis.cpp \
     $(JIT_OMR_DIRTY_DIR)/optimizer/DeadStoreElimination.cpp \
     $(JIT_OMR_DIRTY_DIR)/optimizer/DebuggingCounters.cpp \
-    $(JIT_OMR_DIRTY_DIR)/optimizer/OMRDeadTreesElimination.cpp \
+    $(JIT_OMR_DIRTY_DIR)/optimizer/DeadTreesElimination.cpp \
     $(JIT_OMR_DIRTY_DIR)/optimizer/Dominators.cpp \
     $(JIT_OMR_DIRTY_DIR)/optimizer/DominatorVerifier.cpp \
     $(JIT_OMR_DIRTY_DIR)/optimizer/DominatorsChk.cpp \
@@ -182,7 +182,7 @@ JIT_PRODUCT_SOURCE_FILES+=\
     $(JIT_OMR_DIRTY_DIR)/optimizer/IsolatedStoreElimination.cpp \
     $(JIT_OMR_DIRTY_DIR)/optimizer/LoadExtensions.cpp \
     $(JIT_OMR_DIRTY_DIR)/optimizer/OMRLocalCSE.cpp \
-    $(JIT_OMR_DIRTY_DIR)/optimizer/OMRLocalDeadStoreElimination.cpp \
+    $(JIT_OMR_DIRTY_DIR)/optimizer/LocalDeadStoreElimination.cpp \
     $(JIT_OMR_DIRTY_DIR)/optimizer/LocalOpts.cpp \
     $(JIT_OMR_DIRTY_DIR)/optimizer/OMROptimization.cpp \
     $(JIT_OMR_DIRTY_DIR)/optimizer/OMROptimizationManager.cpp \
