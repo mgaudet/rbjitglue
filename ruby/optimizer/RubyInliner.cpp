@@ -18,7 +18,7 @@
 
 
 #include <algorithm>
-#include "vm_core.h"
+#include "env/VMHeaders.hpp" 
 #include "env/FEBase.hpp"
 #include "il/Block.hpp"
 #include "il/ILOpCodes.hpp"
@@ -36,9 +36,6 @@
 #include "ruby/ilgen/IlGeneratorMethodDetails.hpp"
 #include "ras/DebugCounter.hpp"
 
-#ifdef RUBY_PROJECT_SPECIFIC
-#include "ruby/config.h"
-#endif
 
 #define OPT_DETAILS "O^O DUMB INLINER CALLSITE: "
 

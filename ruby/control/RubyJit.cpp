@@ -22,6 +22,7 @@
 #include "control/Options.hpp"
 #include "control/Options_inlines.hpp"
 #include "env/IO.hpp"
+#include "env/VMHeaders.hpp"
 #include "ruby/version.h"
 #include "ruby/config.h"
 #include "env/CompilerEnv.hpp"

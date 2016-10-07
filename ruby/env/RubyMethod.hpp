@@ -22,14 +22,7 @@
 
 #include "compile/Method.hpp"
 #include "compile/ResolvedMethod.hpp"
-
-extern "C" {
-#define RUBY_DONT_SUBST
-#include "ruby.h"
-#include "method.h"
-#include "vm_core.h"
-#include "iseq.h"
-}
+#include "env/VMHeaders.hpp" 
 
 class RubyMethodBlock
    {

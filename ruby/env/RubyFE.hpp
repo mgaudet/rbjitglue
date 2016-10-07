@@ -20,19 +20,13 @@
 #ifndef RUBYFE_HPP_gfgYoA
 #define RUBYFE_HPP_gfgYoA
 
+
+#include "env/VMHeaders.hpp"
 #include "env/FEBase.hpp"
 #include "env/jittypes.h"
 #include "runtime/RubyJitConfig.hpp"
 #include "runtime/CodeCache.hpp"
 
-/* Ruby */
-extern "C" {
-#define RUBY_DONT_SUBST
-#include "ruby.h"
-#include "vm_core.h"
-#include "jit.h"
-#include "vm_insnhelper.h" // For BOP_MINUS and FIXNUM_ruby_redefined_OP_FLAG etc.
-}
 
 class TR_RubyFE;
 
