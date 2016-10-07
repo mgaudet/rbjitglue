@@ -320,6 +320,11 @@ class RubyIlGenerator : public TR_IlGenerator, public TR_RubyByteCodeIteratorWit
    TR::Node *genCall_ruby_stack(VALUE civ, CallType type);
    TR::Node *genCall_funcallv(VALUE ci);
 
+   TR::Node *genSend(VALUE civ);
+   TR::Node *genSendWithoutBlock(VALUE civ);
+   TR::Node *genInvokeSuper(VALUE civ); 
+   TR::Node *genInvokeBlock(VALUE civ); 
+
    void     dumpCallInfo(rb_call_info_t *);
    uint32_t computeNumArgs(rb_call_info_t*, CallType);
 

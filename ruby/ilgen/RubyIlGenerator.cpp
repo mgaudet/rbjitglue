@@ -864,13 +864,13 @@ RubyIlGenerator::indexedWalker(int32_t startIndex, int32_t& firstIndex, int32_t&
                                                 _bcIndex += len;
                                                 break;
          case BIN(opt_send_without_block):
-            push(genCall_ruby_stack(getOperand(1), CallType_send_without_block)); _bcIndex += len; break;
+            push(genSendWithoutBlock(getOperand(1)));   _bcIndex += len; break;
          case BIN(send):
-            push(genCall_ruby_stack(getOperand(1), CallType_send)); _bcIndex += len; break;
+            push(genSend(getOperand(1)));               _bcIndex += len; break;
          case BIN(invokesuper):
-            push(genCall_ruby_stack(getOperand(1), CallType_invokesuper)); _bcIndex += len; break;
+            push(genInvokeSuper(getOperand(1)));        _bcIndex += len; break;
          case BIN(invokeblock):
-            push(genCall_ruby_stack(getOperand(1), CallType_invokeblock)); _bcIndex += len; break;
+            push(genInvokeBlock(getOperand(1)));        _bcIndex += len; break;
 
          // TODO: BIN(defineclass):
          // TODO: BIN(opt_str_freeze):
@@ -878,7 +878,6 @@ RubyIlGenerator::indexedWalker(int32_t startIndex, int32_t& firstIndex, int32_t&
          // TODO: BIN(opt_case_dispatch):
          // TODO: BIN(opt_call_c_function):
          // TODO: BIN(bitblt):
-         // TODO: BIN(opt_send_without_block):
 
          default:
             traceMsg(comp(), "ABORTING COMPILE: Unsupported YARV instruction %d %s\n", (int)insn, byteCodeName(insn));
@@ -1338,6 +1337,33 @@ RubyIlGenerator::computeNumArgs(rb_call_info_t* ci, CallType type)
 
    return numArgs;
    }
+
+
+TR::Node *
+RubyIlGenerator::genSend(VALUE civ) 
+   {
+   return genCall_ruby_stack(civ, CallType_send); 
+   }
+
+TR::Node *
+RubyIlGenerator::genSendWithoutBlock(VALUE civ) 
+   {
+   return genCall_ruby_stack(civ, CallType_send_without_block); 
+   }
+
+TR::Node *
+RubyIlGenerator::genInvokeSuper(VALUE civ) 
+   {
+   return genCall_ruby_stack(civ, CallType_invokesuper); 
+   }
+
+TR::Node *
+RubyIlGenerator::genInvokeBlock(VALUE civ) 
+   {
+   return genCall_ruby_stack(civ, CallType_invokeblock); 
+   }
+
+
 
 /**
  * Generate a call to a ruby function that gets its arguments via the ruby stack.
