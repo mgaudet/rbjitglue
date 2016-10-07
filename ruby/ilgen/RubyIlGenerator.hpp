@@ -317,7 +317,7 @@ class RubyIlGenerator : public TR_IlGenerator, public TR_RubyByteCodeIteratorWit
 // void    genRubyPush(TR::Node *v);
 
    TR::Node *genCall(TR_RuntimeHelper helper, TR::ILOpCodes opcode, int32_t num, ...);
-   TR::Node *genCall_ruby_stack(VALUE civ, CallType type);
+   TR::Node *genCall_ruby_stack(VALUE civ, CallType type, uint32_t numArgs);
    TR::Node *genCall_funcallv(VALUE ci);
 
    TR::Node *genSend(VALUE civ);
@@ -326,7 +326,6 @@ class RubyIlGenerator : public TR_IlGenerator, public TR_RubyByteCodeIteratorWit
    TR::Node *genInvokeBlock(VALUE civ); 
 
    void     dumpCallInfo(rb_call_info_t *);
-   uint32_t computeNumArgs(rb_call_info_t*, CallType);
 
    virtual void saveStack(int32_t );
    bool valueMayBeModified(TR::Node *sideEffect, TR::Node *node);

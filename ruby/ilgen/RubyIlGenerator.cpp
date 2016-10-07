@@ -1293,83 +1293,55 @@ RubyIlGenerator::dumpCallInfo(rb_call_info_t* ci)
    traceMsg(comp()," | 0\n");
    }
 
-/**
- * Determine the appropriate number of arguments for a call based on a
- * `rb_call_info_t` and calltype.
- */
-uint32_t
-RubyIlGenerator::computeNumArgs(rb_call_info_t* ci, CallType type)
-   {
-   bool blockarg = ci->flag & VM_CALL_ARGS_BLOCKARG;
-   auto numArgs  = 0;
-   switch (type)
-      {
-      case CallType_send:
-         numArgs = 1 /* receiver */ + ci->orig_argc;
-         if (blockarg) numArgs++;
-         break;
-
-      case CallType_send_without_block:
-         numArgs = 1 /* receiver */ + ci->orig_argc;
-         if (blockarg)
-            {
-            logAbort("send_without_block: Oddly... has unsupported block arg","send_without_has_blockarg");
-            //Unreachable.
-            }
-         break;
-
-      case CallType_invokesuper:
-         numArgs = 1 /* receiver */ + ci->orig_argc ;
-         if (blockarg) numArgs++;
-         break;
-
-      case CallType_invokeblock:
-         numArgs = ci->orig_argc; //No receiver for invoke block.
-         if (blockarg)
-            {
-            logAbort("invokeblock: Unsupported block arg","invokeblock_blockarg");
-            }
-         break;
-
-      default:
-         TR_ASSERT(false, "Unknown calltype\n");
-      }
-
-   return numArgs;
-   }
-
-
 TR::Node *
 RubyIlGenerator::genSend(VALUE civ) 
    {
-   return genCall_ruby_stack(civ, CallType_send); 
+   rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
+   return genCall_ruby_stack(civ, CallType_send, 
+                             1 /* receiver */ + ci->orig_argc
+                             + (ci->flag & VM_CALL_ARGS_BLOCKARG ? 1 : 0) 
+                             ); 
    }
 
 TR::Node *
 RubyIlGenerator::genSendWithoutBlock(VALUE civ) 
    {
-   return genCall_ruby_stack(civ, CallType_send_without_block); 
+   rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
+   if (ci->flag & VM_CALL_ARGS_BLOCKARG)
+      {
+      logAbort("send_without_block: Oddly... has unsupported block arg","send_without_has_blockarg");
+      //Unreachable.
+      }
+   return genCall_ruby_stack(civ, CallType_send_without_block,
+                             1 /* receiver */ + ci->orig_argc); 
    }
 
 TR::Node *
 RubyIlGenerator::genInvokeSuper(VALUE civ) 
    {
-   return genCall_ruby_stack(civ, CallType_invokesuper); 
+   rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
+   return genCall_ruby_stack(civ, CallType_invokesuper,
+                             1 /* receiver */ + ci->orig_argc
+                             + (ci->flag & VM_CALL_ARGS_BLOCKARG ? 1 : 0) 
+                             ); 
    }
 
 TR::Node *
 RubyIlGenerator::genInvokeBlock(VALUE civ) 
    {
-   return genCall_ruby_stack(civ, CallType_invokeblock); 
+   rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
+   if (ci->flag & VM_CALL_ARGS_BLOCKARG)
+      {
+      logAbort("invokeblock: Unsupported block arg","invokeblock_blockarg");
+      }
+   return genCall_ruby_stack(civ, CallType_invokeblock, ci->orig_argc); 
    }
-
-
 
 /**
  * Generate a call to a ruby function that gets its arguments via the ruby stack.
  */
 TR::Node *
-RubyIlGenerator::genCall_ruby_stack(VALUE civ, CallType type)
+RubyIlGenerator::genCall_ruby_stack(VALUE civ, CallType type, uint32_t numArgs)
    {
    // Basic operation:
    // - pop the arguments from our stack
@@ -1394,7 +1366,6 @@ RubyIlGenerator::genCall_ruby_stack(VALUE civ, CallType type)
       }
 
    int32_t pending   = _stack->size();
-   auto    numArgs   = computeNumArgs(ci, type);
    int32_t restores  = pending - numArgs; // Stack elements not consumed by call.
 
    TR_ASSERT(restores >= 0,  "More args required than the stack has... %d = %d - %d (%s)\n", restores, pending, numArgs,  callTypes[type]);
