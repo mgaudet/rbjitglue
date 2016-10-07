@@ -317,8 +317,9 @@ class RubyIlGenerator : public TR_IlGenerator, public TR_RubyByteCodeIteratorWit
 // void    genRubyPush(TR::Node *v);
 
    TR::Node *genCall(TR_RuntimeHelper helper, TR::ILOpCodes opcode, int32_t num, ...);
-   TR::Node *genCall_ruby_stack(VALUE civ, CallType type, uint32_t numArgs);
+   TR::Node *genCall_preparation(VALUE ci, uint32_t numArgs, int32_t& restores, int32_t& pending);
    TR::Node *genCall_funcallv(VALUE ci);
+   void cleanupStack(int32_t restores, int32_t pending);
 
    TR::Node *genSend(VALUE civ);
    TR::Node *genSendWithoutBlock(VALUE civ);
