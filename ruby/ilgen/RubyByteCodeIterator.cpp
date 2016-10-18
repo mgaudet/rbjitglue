@@ -59,7 +59,7 @@ TR_RubyByteCodeIterator::getParentIseq(rb_num_t level) const
    const rb_iseq_t *iseq = mb().iseq();
    for (int i = 0; i < level; ++i)
       {
-      iseq = iseq->parent_iseq;
+      iseq = iseq->body->parent_iseq;
       TR_ASSERT(iseq, "parent_iseq for level %d is null", i);
       }
    return iseq;
@@ -70,12 +70,12 @@ TR_RubyByteCodeIterator::getLocalName(lindex_t index, const rb_iseq_t *iseq) con
    {
    static const char* unknownLocalName = "?";
 
-   ID *tbl = iseq->local_table;
+   const ID *tbl = iseq->body->local_table;
    TR_ASSERT(tbl, "local_table must be non-null");
-   TR_ASSERT(index <= iseq->local_size, "invalid local index %d, iseq->local_size is %d",
-             index, iseq->local_size);
+   TR_ASSERT(index <= iseq->body->local_size, "invalid local index %d, iseq->local_size is %d",
+             index, iseq->body->local_size);
 
-   int32_t tableIndex = iseq->local_size - index;
+   int32_t tableIndex = iseq->body->local_size - index;
 
    // Should call id_to_name instead of rb_id2name directly
    const char *name = fe()->id2name(tbl[tableIndex]);
@@ -92,7 +92,7 @@ TR_RubyByteCodeIterator::printLocalTables() const
    do
       {
       printLocalTable(cur, level);
-      cur = cur->parent_iseq;
+      cur = cur->body->parent_iseq;
       level++;
       }
    while (cur);
@@ -102,31 +102,31 @@ TR_RubyByteCodeIterator::printLocalTables() const
 void
 TR_RubyByteCodeIterator::printLocalTable(rb_iseq_t const *iseq, int32_t const level) const
    {
-   ID *tbl = iseq->local_table;
+   const ID *tbl = iseq->body->local_table;
 
    if (tbl)
       {
       trfprintf(comp()->getOutFile(), "| level %d\n", level);
 
-      for (int i = iseq->local_table_size-1; i >= 0; --i)
+      for (int i = iseq->body->local_table_size-1; i >= 0; --i)
          {
-         lindex_t localIndex = iseq->local_size - i;
+         lindex_t localIndex = iseq->body->local_size - i;
          const char *name = getLocalName(localIndex, iseq);
 
-         if (i == iseq->local_table_size-1) // if first-time
+         if (i == iseq->body->local_table_size-1) // if first-time
             trfprintf(comp()->getOutFile(), "|\t");
 
          trfprintf(comp()->getOutFile(), "[%d] %s",
                    localIndex,
                    name ? name : "?");
 
-         if (iseq->param.flags.has_opt)
+         if (iseq->body->param.flags.has_opt)
             {
-            int argc = iseq->param.size;
-            if (i >= argc && i < (argc + iseq->param.opt_num - 1))
+            int argc = iseq->body->param.size;
+            if (i >= argc && i < (argc + iseq->body->param.opt_num - 1))
                {
                trfprintf(comp()->getOutFile(),
-                         "(Opt=%d)", iseq->param.opt_table[i - argc]);
+                         "(Opt=%d)", iseq->body->param.opt_table[i - argc]);
                }
             }
          trfprintf(comp()->getOutFile(), "%s", (i == 0) ? "\n" : ", ");
@@ -170,13 +170,13 @@ TR_RubyByteCodeIterator::printArgsTable(const rb_iseq_t *iseq) const
 void
 TR_RubyByteCodeIterator::printCatchTable(const rb_iseq_t *iseq, int32_t level) const
    {
-   if (iseq->catch_table == 0)
+   if (iseq->body->catch_table == 0)
       return;
 
    trfprintf(comp()->getOutFile(), "Catch Table:\n");
-   for (int i = 0; i < iseq->catch_table->size; i++)
+   for (int i = 0; i < iseq->body->catch_table->size; i++)
       {
-      struct iseq_catch_table_entry &entry = iseq->catch_table->entries[i];
+      const struct iseq_catch_table_entry &entry = iseq->body->catch_table->entries[i];
       trfprintf(comp()->getOutFile(), "| %-6s start:%04d end:%04d sp:%04d cont:%04d iseq:%p\n",
                 catch_type(entry.type), (int)entry.start,
                 (int)entry.end, (int)entry.sp, (int)entry.cont,
@@ -189,9 +189,9 @@ TR_RubyByteCodeIteratorWithState::findAndMarkExceptionRanges()
    {
    const rb_iseq_t *iseq = mb().iseq();
    // TODO: this loop is also duplicated in printCatchTable
-   for (int i = 0; iseq->catch_table && i < iseq->catch_table->size; i++)
+   for (int i = 0; iseq->body->catch_table && i < iseq->body->catch_table->size; i++)
       {
-      struct iseq_catch_table_entry &entry = iseq->catch_table->entries[i];
+      const struct iseq_catch_table_entry &entry = iseq->body->catch_table->entries[i];
       markExceptionRange(i, (int)entry.start, (int)entry.end,
                          (int)entry.cont, (int)entry.type);
       }
@@ -277,7 +277,7 @@ TR_RubyByteCodeIterator::printByteCode()
 
             case TS_CALLINFO:
                {
-               rb_call_info_t *ci = (rb_call_info_t *) arg_j;
+               rb_call_info *ci = (rb_call_info *) arg_j;
 
                if (ci->mid)       trfprintf(comp()->getOutFile(), "%s (mid:%d) ", fe()->id2name(ci->mid), ci->mid);
 
@@ -298,7 +298,6 @@ TR_RubyByteCodeIterator::printByteCode()
                   trfprintf(comp()->getOutFile(), "0x0");
                   trfprintf(comp()->getOutFile(), ")");
                   }
-               if (ci->blockiseq) trfprintf(comp()->getOutFile(), " blockiseq:%p", ci->blockiseq);
                trfprintf(comp()->getOutFile(), ">");
                }
                break;

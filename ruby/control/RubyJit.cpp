@@ -303,18 +303,18 @@ void *jit_compile(rb_iseq_t *iseq)
    TR_Hotness optLevel = cold;
 
    int32_t len =
-      RSTRING_LEN(iseq->location.path) +
+      RSTRING_LEN(iseq->body->location.path) +
       (sizeof(size_t) * 3) +                // first_lineno: estimate three decimal digits per byte
-      RSTRING_LEN(iseq->location.label) +
+      RSTRING_LEN(iseq->body->location.label) +
       3;                                    // two colons and a null terminator
 
    // FIXME: use std::string when it becomes possible
    char *name = (char*) malloc(len);
    auto truncated       = false;
    auto written         = snprintf(name, len, "%s:%ld:%s",
-           (char*) RSTRING_PTR(iseq->location.path),
-           FIX2LONG(iseq->location.first_lineno),
-           (char* )RSTRING_PTR(iseq->location.label));
+           (char*) RSTRING_PTR(iseq->body->location.path),
+           FIX2LONG(iseq->body->location.first_lineno),
+           (char* )RSTRING_PTR(iseq->body->location.label));
 
    if (written > len)
       {
@@ -340,13 +340,13 @@ void *jit_compile(rb_iseq_t *iseq)
 
    auto &fe = TR_RubyFE::singleton();
 
-   if ((iseq->param.flags.has_opt
+   if ((iseq->body->param.flags.has_opt
          && feGetEnv("TR_DISABLE_OPTIONAL_ARGUMENTS"))   ||
-       iseq->param.flags.has_rest   ||
-       iseq->param.flags.has_post   ||
-       iseq->param.flags.has_block  ||
-       iseq->param.flags.has_kw     ||
-       iseq->param.flags.has_kwrest
+       iseq->body->param.flags.has_rest   ||
+       iseq->body->param.flags.has_post   ||
+       iseq->body->param.flags.has_block  ||
+       iseq->body->param.flags.has_kw     ||
+       iseq->body->param.flags.has_kwrest
        )
       {
       auto jitConfig = fe.jitConfig();
@@ -357,12 +357,12 @@ void *jit_compile(rb_iseq_t *iseq)
             " opts %d rest %d post %d block %d keywords %d kwrest %d>\n",
             name,
             truncated ? "(truncated)" : "",
-            iseq->param.flags.has_opt,
-            iseq->param.flags.has_rest,
-            iseq->param.flags.has_post,
-            iseq->param.flags.has_block,
-            iseq->param.flags.has_kw,
-            iseq->param.flags.has_kwrest);
+            iseq->body->param.flags.has_opt,
+            iseq->body->param.flags.has_rest,
+            iseq->body->param.flags.has_post,
+            iseq->body->param.flags.has_block,
+            iseq->body->param.flags.has_kw,
+            iseq->body->param.flags.has_kwrest);
          }
       goto cleanupAndExit;
       }

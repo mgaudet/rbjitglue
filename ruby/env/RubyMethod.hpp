@@ -36,19 +36,20 @@ class RubyMethodBlock
       // To save memory, we could free this if created here, 
       // hoewver for now, we leave it behind to fastpath 
       // future accesses. 
-      rb_iseq_original_iseq(iseq);   
+      _original_bytecodes = rb_iseq_original_iseq(iseq); // FIXME: Currently will leak!
       }
 
    const rb_iseq_t         *iseq()             const { return _iseq; }
    const char              *name()             const { return _name; }
-   unsigned long            size()             const { return _iseq->iseq_size; }
-   VALUE                   *bytecodes()        const { return _iseq->iseq; }
-   VALUE                   *bytecodesEncoded() const { return _iseq->iseq_encoded; }
-   size_t                   stack_max()        const { return _iseq->stack_max; }
+   unsigned long            size()             const { return _iseq->body->iseq_size; }
+   const VALUE             *bytecodes()        const { return _original_bytecodes; }
+   const VALUE             *bytecodesEncoded() const { return _iseq->body->iseq_encoded; }
+   size_t                   stack_max()        const { return _iseq->body->stack_max; }
 
    private:
-   const rb_iseq_t         *_iseq;
-   const char              *_name;
+   const rb_iseq_t          *_iseq;
+   const char               *_name;
+   const VALUE              *_original_bytecodes;  
    };
 
 
@@ -107,7 +108,7 @@ class ResolvedRubyMethodBase : public TR_ResolvedMethod
 
    virtual TR_OpaqueMethodBlock *getPersistentIdentifier() { return (TR_OpaqueMethodBlock *) &_method; }
    RubyMethodBlock &getRubyMethodBlock()    { return _method; }
-   VALUE*           code()                  { return _method.bytecodes(); }
+   const VALUE*           code()            { return _method.bytecodes(); }
 
    uint32_t                      numberOfExceptionHandlers() { return 0; }
 

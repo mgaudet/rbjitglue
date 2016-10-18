@@ -68,7 +68,7 @@ RubyIlGenerator::RubyIlGenerator(TR::IlGeneratorMethodDetails &details,
      _privateSPSymRef(0),
      _icSerialSymRef(0),
      _icValueSymRef(0),
-     _rb_iseq_struct_selfSymRef(0),
+     // _rb_iseq_struct_selfSymRef(0),
      _iseqSymRef(0),
      _mRubyVMFrozenCoreSymRef(0),
      _localSymRefs(TR::comp()->allocator()),
@@ -104,8 +104,8 @@ RubyIlGenerator::RubyIlGenerator(TR::IlGeneratorMethodDetails &details,
    _icSerialSymRef   = symRefTab.createRubyNamedShadowSymRef("ic_serial", TR_RubyFE::slotType(),    TR_RubyFE::SLOTSIZE, offsetof(struct iseq_inline_cache_entry, ic_serial),        false);
    _icValueSymRef    = symRefTab.createRubyNamedShadowSymRef("ic_value",  TR_RubyFE::slotType(),    TR_RubyFE::SLOTSIZE, offsetof(struct iseq_inline_cache_entry, ic_value.value),   false);
 
-   _rb_iseq_struct_selfSymRef =
-                       symRefTab.createRubyNamedShadowSymRef("rb_iseq_struct->self",      TR_RubyFE::slotType(),  TR_RubyFE::SLOTSIZE, offsetof(rb_iseq_struct, self),     false);  //self in rb_iseq_struct does not change across calls.
+   // _rb_iseq_struct_selfSymRef =
+   //                    symRefTab.createRubyNamedShadowSymRef("rb_iseq_struct->self",      TR_RubyFE::slotType(),  TR_RubyFE::SLOTSIZE, offsetof(rb_iseq_struct, self),     false);  //self in rb_iseq_struct does not change across calls.
    _iseqSymRef       = symRefTab.createRubyNamedShadowSymRef("iseq",                      TR::Address,           TR_RubyFE::SLOTSIZE, offsetof(rb_control_frame_t, iseq), true);
 
    static_assert(sizeof(*fe->getJitInterface()->globals.ruby_vm_global_constant_state_ptr) == TR_RubyFE::SLOTSIZE,
@@ -318,10 +318,10 @@ RubyIlGenerator::computeEntryTargets()
    //Analyze opt args
    const auto *iseq = mb().iseq();
 
-   traceMsg(comp(), "arg_opts: %d\n", iseq->param.opt_num);
-   for (int i = 0; i < iseq->param.opt_num; i++)
+   traceMsg(comp(), "arg_opts: %d\n", iseq->body->param.opt_num);
+   for (int i = 0; i < iseq->body->param.opt_num; i++)
       {
-      targets.insert(iseq->param.opt_table[i]);
+      targets.insert(iseq->body->param.opt_table[i]);
       }
 
    // Analyze catch tables.
@@ -578,10 +578,10 @@ RubyIlGenerator::addExceptionTargets(localset &targets)
    {
    const rb_iseq_t *iseq = mb().iseq();
    for (int i = 0;
-        iseq->catch_table && i < iseq->catch_table->size;
+        iseq->body->catch_table && i < iseq->body->catch_table->size;
         i++)
       {
-      struct iseq_catch_table_entry &entry = iseq->catch_table->entries[i];
+      const struct iseq_catch_table_entry &entry = iseq->body->catch_table->entries[i];
       if (!entry.iseq) // Catch entry is local
          {
 
@@ -817,7 +817,7 @@ RubyIlGenerator::indexedWalker(int32_t startIndex, int32_t& firstIndex, int32_t&
 
          case BIN(checkmatch):                  push(checkmatch((rb_num_t)getOperand(1)));                           _bcIndex += len; break;
 
-         case BIN(putiseq):                     push(putiseq((ISEQ)getOperand(1)));                                  _bcIndex += len; break;
+//         case BIN(putiseq):                     push(putiseq((ISEQ)getOperand(1)));                                  _bcIndex += len; break;
          case BIN(newhash):                     push(newhash((rb_num_t)getOperand(1))); _bcIndex += len; break;
 
          case BIN(newrange):                    push(newrange((rb_num_t)getOperand(1))); _bcIndex += len; break;
@@ -863,14 +863,17 @@ RubyIlGenerator::indexedWalker(int32_t startIndex, int32_t& firstIndex, int32_t&
          case BIN(opt_aref_with):               push(aref_with((CALL_INFO)getOperand(1), (VALUE)getOperand(2)));
                                                 _bcIndex += len;
                                                 break;
-         case BIN(opt_send_without_block):
-            push(genSendWithoutBlock(getOperand(1)));   _bcIndex += len; break;
-         case BIN(send):
-            push(genSend(getOperand(1)));               _bcIndex += len; break;
-         case BIN(invokesuper):
-            push(genInvokeSuper(getOperand(1)));        _bcIndex += len; break;
-         case BIN(invokeblock):
-            push(genInvokeBlock(getOperand(1)));        _bcIndex += len; break;
+
+         // TODO: Fix for 2.3 
+         //
+         // case BIN(opt_send_without_block):
+         //    push(genSendWithoutBlock(getOperand(1)));   _bcIndex += len; break;
+         // case BIN(send):
+         //    push(genSend(getOperand(1)));               _bcIndex += len; break;
+         // case BIN(invokesuper):
+         //    push(genInvokeSuper(getOperand(1)));        _bcIndex += len; break;
+         // case BIN(invokeblock):
+         //    push(genInvokeBlock(getOperand(1)));        _bcIndex += len; break;
 
          // TODO: BIN(defineclass):
          // TODO: BIN(opt_str_freeze):
@@ -1246,10 +1249,10 @@ RubyIlGenerator::genCall(TR_RuntimeHelper helper, TR::ILOpCodes opcode, int32_t 
    }
 
 
+/*
 void
-RubyIlGenerator::dumpCallInfo(rb_call_info_t* ci)
+RubyIlGenerator::dumpCallInfo(CALL_INFO ci)
    {
-
 
    traceMsg(comp(), "rb_call_info_t %p\n\t"
             "{mid = %d,\n\t"
@@ -1292,83 +1295,84 @@ RubyIlGenerator::dumpCallInfo(rb_call_info_t* ci)
    if (ci->flag & VM_CALL_ARGS_BLOCKARG   ) traceMsg(comp(),"VM_CALL_ARGS_BLOCKARG   |");
    traceMsg(comp()," | 0\n");
    }
+   */
 
-TR::Node *
-RubyIlGenerator::genSend(VALUE civ) 
-   {
-   rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
-   int32_t restores, pending = 0; 
-   auto * recv = genCall_preparation(civ, 
-                             1 /* receiver */ + ci->orig_argc + (ci->flag & VM_CALL_ARGS_BLOCKARG ? 1 : 0),
-                             restores,
-                             pending
-                             ); 
-
-   auto * callNode = genCall(RubyHelper_vm_send, TR::Node::xcallOp(), 3,
-                      loadThread(),
-                      TR::Node::aconst((uintptr_t)civ),
-                      loadCFP());
-   cleanupStack(restores,pending);
-   return callNode; 
-   }
-
-TR::Node *
-RubyIlGenerator::genSendWithoutBlock(VALUE civ) 
-   {
-   rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
-   if (ci->flag & VM_CALL_ARGS_BLOCKARG)
-      {
-      logAbort("send_without_block: Oddly... has unsupported block arg","send_without_has_blockarg");
-      //Unreachable.
-      }
-   int32_t restores, pending = 0; 
-   auto* recv = genCall_preparation(civ, 1 /* receiver */ + ci->orig_argc, restores, pending); 
-   TR_ASSERT(recv, "Reciever is null, despite sending-without-block\n");
-   auto* callNode = genCall(RubyHelper_vm_send_without_block, TR::Node::xcallOp(), 3,
-                      loadThread(),
-                      TR::Node::aconst((uintptr_t)civ),
-                      recv);
-   //Let the inliner take a pass at this.
-   methodSymbol()->setMayHaveInlineableCall(true);
-   cleanupStack(restores,pending);
-   return callNode;
-   }
-
-TR::Node *
-RubyIlGenerator::genInvokeSuper(VALUE civ) 
-   {
-   rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
-   int32_t restores, pending = 0; 
-   auto* recv = genCall_preparation(civ, 
-                             1 /* receiver */ + ci->orig_argc + (ci->flag & VM_CALL_ARGS_BLOCKARG ? 1 : 0),
-                             restores, 
-                             pending
-                             ); 
-   auto* callNode = genCall(RubyHelper_vm_invokesuper, TR::Node::xcallOp(), 3,
-                      loadThread(),
-                      TR::Node::aconst((uintptr_t)civ),
-                      loadCFP());
-
-   cleanupStack(restores,pending);
-   return callNode;
-   }
-
-TR::Node *
-RubyIlGenerator::genInvokeBlock(VALUE civ) 
-   {
-   rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
-   if (ci->flag & VM_CALL_ARGS_BLOCKARG)
-      {
-      logAbort("invokeblock: Unsupported block arg","invokeblock_blockarg");
-      }
-   int32_t restores, pending = 0; 
-   auto* recv = genCall_preparation(civ, ci->orig_argc, restores, pending); 
-   auto* callNode = genCall(RubyHelper_vm_invokeblock, TR::Node::xcallOp(), 2,
-                      loadThread(),
-                      TR::Node::aconst((uintptr_t)civ));
-   cleanupStack(restores,pending);
-   return callNode; 
-   }
+// TR::Node *
+// RubyIlGenerator::genSend(VALUE civ) 
+//    {
+//    rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
+//    int32_t restores, pending = 0; 
+//    auto * recv = genCall_preparation(civ, 
+//                              1 /* receiver */ + ci->orig_argc + (ci->flag & VM_CALL_ARGS_BLOCKARG ? 1 : 0),
+//                              restores,
+//                              pending
+//                              ); 
+// 
+//    auto * callNode = genCall(RubyHelper_vm_send, TR::Node::xcallOp(), 3,
+//                       loadThread(),
+//                       TR::Node::aconst((uintptr_t)civ),
+//                       loadCFP());
+//    cleanupStack(restores,pending);
+//    return callNode; 
+//    }
+// 
+// TR::Node *
+// RubyIlGenerator::genSendWithoutBlock(VALUE civ) 
+//    {
+//    rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
+//    if (ci->flag & VM_CALL_ARGS_BLOCKARG)
+//       {
+//       logAbort("send_without_block: Oddly... has unsupported block arg","send_without_has_blockarg");
+//       //Unreachable.
+//       }
+//    int32_t restores, pending = 0; 
+//    auto* recv = genCall_preparation(civ, 1 /* receiver */ + ci->orig_argc, restores, pending); 
+//    TR_ASSERT(recv, "Reciever is null, despite sending-without-block\n");
+//    auto* callNode = genCall(RubyHelper_vm_send_without_block, TR::Node::xcallOp(), 3,
+//                       loadThread(),
+//                       TR::Node::aconst((uintptr_t)civ),
+//                       recv);
+//    //Let the inliner take a pass at this.
+//    methodSymbol()->setMayHaveInlineableCall(true);
+//    cleanupStack(restores,pending);
+//    return callNode;
+//    }
+// 
+// TR::Node *
+// RubyIlGenerator::genInvokeSuper(VALUE civ) 
+//    {
+//    rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
+//    int32_t restores, pending = 0; 
+//    auto* recv = genCall_preparation(civ, 
+//                              1 /* receiver */ + ci->orig_argc + (ci->flag & VM_CALL_ARGS_BLOCKARG ? 1 : 0),
+//                              restores, 
+//                              pending
+//                              ); 
+//    auto* callNode = genCall(RubyHelper_vm_invokesuper, TR::Node::xcallOp(), 3,
+//                       loadThread(),
+//                       TR::Node::aconst((uintptr_t)civ),
+//                       loadCFP());
+// 
+//    cleanupStack(restores,pending);
+//    return callNode;
+//    }
+// 
+// TR::Node *
+// RubyIlGenerator::genInvokeBlock(VALUE civ) 
+//    {
+//    rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
+//    if (ci->flag & VM_CALL_ARGS_BLOCKARG)
+//       {
+//       logAbort("invokeblock: Unsupported block arg","invokeblock_blockarg");
+//       }
+//    int32_t restores, pending = 0; 
+//    auto* recv = genCall_preparation(civ, ci->orig_argc, restores, pending); 
+//    auto* callNode = genCall(RubyHelper_vm_invokeblock, TR::Node::xcallOp(), 2,
+//                       loadThread(),
+//                       TR::Node::aconst((uintptr_t)civ));
+//    cleanupStack(restores,pending);
+//    return callNode; 
+//    }
 
 void
 RubyIlGenerator::cleanupStack(int32_t restores, int32_t pending) 
@@ -1383,85 +1387,85 @@ RubyIlGenerator::cleanupStack(int32_t restores, int32_t pending)
    }
 
 
-/** 
- * Does the preparaton work for building a ruby stack call: 
- * - restore pending trees.
- *
- * Returns the reciever node, if relevant. 
- */
-TR::Node* 
-RubyIlGenerator::genCall_preparation(VALUE civ, uint32_t numArgs, int32_t& restores, int32_t& pending)
-   {
-   rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
-   if (trace_enabled) dumpCallInfo(ci);
-   if (ci->flag & VM_CALL_TAILCALL)
-      {
-      logAbort("jit doesn't support tailcall optimized iseqs","vm_call_tailcall");
-      //unreachable.
-      }
-
-   pending   = _stack->size();
-   restores  = pending - numArgs; // Stack elements not consumed by call.
-
-   TR_ASSERT(restores >= 0, "More args required than the stack has... %d = %d - %d (%s)\n",
-             restores,
-             pending,
-             numArgs,
-             callTypes[type]);
-
-   if (restores > 0 && feGetEnv("DISABLE_YARV_STACK_RESTORATION"))
-      {
-      logAbort("YARV stack restoration is disabled","yarv_stack_restoration_disabled");
-      // Unreachable.
-      }
-
-
-   if (trace_enabled)
-      traceMsg(comp(), "Creating call at bci=%d\n", _bcIndex);
-
-   TR::Node *recv = NULL;
-   if (pending > 0)
-      {
-      rematerializeSP();
-      //genRubyStackAdjust(pending);  //Bump stack pointer for callee.
-      auto *privateSP = loadPrivateSP(); //
-
-      //Write out arguments and pending slots
-      for (int32_t i = 0; i < pending; i++)
-         {
-         TR::Node * val;
-         if (i < numArgs)
-            {
-            val   = pop(); // Pop off args
-            recv  = val;   // Save the receiver for those sends that need it.
-            traceMsg(comp(), "\t[%d] writing argument to stack slot %d (N = %p)\n",
-                     _bcIndex, pending - i - 1, val);
-            }
-         else
-            {
-            // We also write out non-args back to the stack in order to make OSR
-            // workk.
-            //
-            // We peek at the pending trees however, to avoid having to reload
-            // these values in a block.
-
-            val   = topn(i - numArgs);
-            traceMsg(comp(), "\t[%d] writing pending to stack slot %d (N = %p)\n",
-                     _bcIndex, pending - i - 1, val);
-            }
-
-         auto *shadow = getStackSymRef(pending - i - 1);
-         auto store = xstorei(shadow,
-                              privateSP,
-                              val);
-         genTreeTop(store);
-
-         }
-      }
-
-
-   return recv; 
-   }
+// /** 
+//  * Does the preparaton work for building a ruby stack call: 
+//  * - restore pending trees.
+//  *
+//  * Returns the reciever node, if relevant. 
+//  */
+// TR::Node* 
+// RubyIlGenerator::genCall_preparation(VALUE civ, uint32_t numArgs, int32_t& restores, int32_t& pending)
+//    {
+//    rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
+//    if (trace_enabled) dumpCallInfo(ci);
+//    if (ci->flag & VM_CALL_TAILCALL)
+//       {
+//       logAbort("jit doesn't support tailcall optimized iseqs","vm_call_tailcall");
+//       //unreachable.
+//       }
+// 
+//    pending   = _stack->size();
+//    restores  = pending - numArgs; // Stack elements not consumed by call.
+// 
+//    TR_ASSERT(restores >= 0, "More args required than the stack has... %d = %d - %d (%s)\n",
+//              restores,
+//              pending,
+//              numArgs,
+//              callTypes[type]);
+// 
+//    if (restores > 0 && feGetEnv("DISABLE_YARV_STACK_RESTORATION"))
+//       {
+//       logAbort("YARV stack restoration is disabled","yarv_stack_restoration_disabled");
+//       // Unreachable.
+//       }
+// 
+// 
+//    if (trace_enabled)
+//       traceMsg(comp(), "Creating call at bci=%d\n", _bcIndex);
+// 
+//    TR::Node *recv = NULL;
+//    if (pending > 0)
+//       {
+//       rematerializeSP();
+//       //genRubyStackAdjust(pending);  //Bump stack pointer for callee.
+//       auto *privateSP = loadPrivateSP(); //
+// 
+//       //Write out arguments and pending slots
+//       for (int32_t i = 0; i < pending; i++)
+//          {
+//          TR::Node * val;
+//          if (i < numArgs)
+//             {
+//             val   = pop(); // Pop off args
+//             recv  = val;   // Save the receiver for those sends that need it.
+//             traceMsg(comp(), "\t[%d] writing argument to stack slot %d (N = %p)\n",
+//                      _bcIndex, pending - i - 1, val);
+//             }
+//          else
+//             {
+//             // We also write out non-args back to the stack in order to make OSR
+//             // workk.
+//             //
+//             // We peek at the pending trees however, to avoid having to reload
+//             // these values in a block.
+// 
+//             val   = topn(i - numArgs);
+//             traceMsg(comp(), "\t[%d] writing pending to stack slot %d (N = %p)\n",
+//                      _bcIndex, pending - i - 1, val);
+//             }
+// 
+//          auto *shadow = getStackSymRef(pending - i - 1);
+//          auto store = xstorei(shadow,
+//                               privateSP,
+//                               val);
+//          genTreeTop(store);
+// 
+//          }
+//       }
+// 
+// 
+//    return recv; 
+//    }
 
 
 TR::Node *
@@ -1657,12 +1661,12 @@ RubyIlGenerator::setspecial(rb_num_t key)
          obj);
    }
 
-TR::Node *
-RubyIlGenerator::putiseq(ISEQ iseq)
-   {
-   TR::Node *iseqNode = TR::Node::aconst((uintptr_t)iseq);
-   return xloadi(_rb_iseq_struct_selfSymRef, iseqNode);
-   }
+// TR::Node *
+// RubyIlGenerator::putiseq(ISEQ iseq)
+//    {
+//    TR::Node *iseqNode = TR::Node::aconst((uintptr_t)iseq);
+//    return xloadi(_rb_iseq_struct_selfSymRef, iseqNode);
+//    }
 
 TR::Node *
 RubyIlGenerator::putspecialobject(rb_num_t value_type)
@@ -1836,27 +1840,26 @@ RubyIlGenerator::setconstant(ID id)
            cbase, TR::Node::xconst(id), val);
    }
 
-TR::Node *
-RubyIlGenerator::genCall_funcallv(VALUE civ)
-   {
-   // Basic Operation:
-   // - put the arguments in a contiguous set of temps (argv)
-   // - pop the receiver from our stack
-   // - call rb_funcallv(recv, mid, argc, argv)
-   // - push the return value
-   rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
-
-   TR_ASSERT(0 == (ci->flag & VM_CALL_ARGS_BLOCKARG), "send: we don't support block arg just yet");
-
-   TR::Node *argv     = createLocalArray(ci->orig_argc);
-   TR::Node *receiver = pop();
-
-   return genCall(RubyHelper_rb_funcallv, TR::Node::xcallOp(), 4,
-                  receiver,
-                  TR::Node::xconst(ci->mid),
-                  TR::Node::xconst(ci->orig_argc),
-                  argv);
-   }
+// RubyIlGenerator::genCall_funcallv(VALUE civ)
+//    {
+//    // Basic Operation:
+//    // - put the arguments in a contiguous set of temps (argv)
+//    // - pop the receiver from our stack
+//    // - call rb_funcallv(recv, mid, argc, argv)
+//    // - push the return value
+//    rb_call_info_t *ci = reinterpret_cast<rb_call_info_t*>(civ);
+// 
+//    TR_ASSERT(0 == (ci->flag & VM_CALL_ARGS_BLOCKARG), "send: we don't support block arg just yet");
+// 
+//    TR::Node *argv     = createLocalArray(ci->orig_argc);
+//    TR::Node *receiver = pop();
+// 
+//    return genCall(RubyHelper_rb_funcallv, TR::Node::xcallOp(), 4,
+//                   receiver,
+//                   TR::Node::xconst(ci->mid),
+//                   TR::Node::xconst(ci->orig_argc),
+//                   argv);
+//    }
 
 int32_t
 RubyIlGenerator::jump(int32_t offset)
