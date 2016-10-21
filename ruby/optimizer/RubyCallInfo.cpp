@@ -41,6 +41,9 @@ TR_CallSite* TR_CallSite::create(TR::TreeTop* tt,
       int32_t depth,
       bool allConsts)
    {
+   TR_ASSERT(false, "Inlining for 2.3 is intentionally disabled." ); 
+   return NULL; 
+   /* 
    TR_ResolvedMethod* lCaller = caller ? caller : symRef->getOwningMethod(comp);
    if(node->getSymbol()->castToMethodSymbol()->isHelper())
       {
@@ -122,6 +125,8 @@ TR_CallSite* TR_CallSite::create(TR::TreeTop* tt,
          false,
          node->getByteCodeInfo(),
          comp);
+   
+         */
    }
 
 bool
