@@ -278,7 +278,7 @@ class RubyIlGenerator : public TR_IlGenerator, public TR_RubyByteCodeIteratorWit
    TR::Node *getglobal     (GENTRY entry);
    TR::Node *setglobal     (GENTRY entry);
    TR::Node *opt_binary    (TR_RuntimeHelper helper, VALUE ci, VALUE cc);
-   TR::Node *opt_ternary   (TR_RuntimeHelper helper, VALUE ci);
+   TR::Node *opt_ternary   (TR_RuntimeHelper helper, VALUE ci, VALUE cc);
    TR::Node *opt_unary     (TR_RuntimeHelper helper, VALUE ci);
    TR::Node *opt_neq       (TR_RuntimeHelper helper, VALUE ci, VALUE ci_eq);
    TR::Node *newhash       (rb_num_t num);

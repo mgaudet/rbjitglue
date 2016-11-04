@@ -852,7 +852,7 @@ RubyIlGenerator::indexedWalker(int32_t startIndex, int32_t& firstIndex, int32_t&
          case BIN(opt_ltlt):                    push(opt_binary (RubyHelper_vm_opt_ltlt,    getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_not):                     push(opt_unary  (RubyHelper_vm_opt_not,     getOperand(1))); _bcIndex += len; break;
          case BIN(opt_aref):                    push(opt_binary (RubyHelper_vm_opt_aref,    getOperand(1), getOperand(2))); _bcIndex += len; break;
-         case BIN(opt_aset):                    push(opt_ternary(RubyHelper_vm_opt_aset,    getOperand(1))); _bcIndex += len; break;
+         case BIN(opt_aset):                    push(opt_ternary(RubyHelper_vm_opt_aset,    getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_length):                  push(opt_unary  (RubyHelper_vm_opt_length,  getOperand(1))); _bcIndex += len; break;
          case BIN(opt_size):                    push(opt_unary  (RubyHelper_vm_opt_size,    getOperand(1))); _bcIndex += len; break;
          case BIN(opt_empty_p):                 push(opt_unary  (RubyHelper_vm_opt_empty_p, getOperand(1))); _bcIndex += len; break;
@@ -1120,7 +1120,7 @@ RubyIlGenerator::opt_binary(TR_RuntimeHelper helper, VALUE ci, VALUE cc)
    }
 
 TR::Node *
-RubyIlGenerator::opt_ternary(TR_RuntimeHelper helper, VALUE ci)
+RubyIlGenerator::opt_ternary(TR_RuntimeHelper helper, VALUE ci, VALUE cc)
    {
    TR::Node *third= pop();
    TR::Node *obj  = pop();
@@ -1128,6 +1128,7 @@ RubyIlGenerator::opt_ternary(TR_RuntimeHelper helper, VALUE ci)
    return genCall(helper, TR::Node::xcallOp(), 5,
                   loadThread(),
                   TR::Node::aconst((uintptr_t)ci),
+                  TR::Node::aconst((uintptr_t)cc),
                   recv,
                   obj,
                   third);
