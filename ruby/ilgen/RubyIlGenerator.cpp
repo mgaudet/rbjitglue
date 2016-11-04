@@ -838,20 +838,20 @@ RubyIlGenerator::indexedWalker(int32_t startIndex, int32_t& firstIndex, int32_t&
 
          case BIN(defined):                     push(defined((rb_num_t)getOperand(1), (VALUE)getOperand(2), (VALUE)getOperand(3))); _bcIndex += len; break;
 
-         case BIN(opt_plus):                    push(opt_binary (RubyHelper_vm_opt_plus,    getOperand(1))); _bcIndex += len; break;
-         case BIN(opt_minus):                   push(opt_binary (RubyHelper_vm_opt_minus,   getOperand(1))); _bcIndex += len; break;
-         case BIN(opt_mult):                    push(opt_binary (RubyHelper_vm_opt_mult,    getOperand(1))); _bcIndex += len; break;
-         case BIN(opt_div):                     push(opt_binary (RubyHelper_vm_opt_div,     getOperand(1))); _bcIndex += len; break;
-         case BIN(opt_mod):                     push(opt_binary (RubyHelper_vm_opt_mod,     getOperand(1))); _bcIndex += len; break;
-         case BIN(opt_eq):                      push(opt_binary (RubyHelper_vm_opt_eq,      getOperand(1))); _bcIndex += len; break;
+         case BIN(opt_plus):                    push(opt_binary (RubyHelper_vm_opt_plus,    getOperand(1), getOperand(2))); _bcIndex += len; break;
+         case BIN(opt_minus):                   push(opt_binary (RubyHelper_vm_opt_minus,   getOperand(1), getOperand(2))); _bcIndex += len; break;
+         case BIN(opt_mult):                    push(opt_binary (RubyHelper_vm_opt_mult,    getOperand(1), getOperand(2))); _bcIndex += len; break;
+         case BIN(opt_div):                     push(opt_binary (RubyHelper_vm_opt_div,     getOperand(1), getOperand(2))); _bcIndex += len; break;
+         case BIN(opt_mod):                     push(opt_binary (RubyHelper_vm_opt_mod,     getOperand(1), getOperand(2))); _bcIndex += len; break;
+         case BIN(opt_eq):                      push(opt_binary (RubyHelper_vm_opt_eq,      getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_neq):                     push(opt_neq    (RubyHelper_vm_opt_neq,     getOperand(1), getOperand(2))); _bcIndex += len; break;
-         case BIN(opt_lt):                      push(opt_binary (RubyHelper_vm_opt_lt,      getOperand(1))); _bcIndex += len; break;
-         case BIN(opt_le):                      push(opt_binary (RubyHelper_vm_opt_le,      getOperand(1))); _bcIndex += len; break;
-         case BIN(opt_gt):                      push(opt_binary (RubyHelper_vm_opt_gt,      getOperand(1))); _bcIndex += len; break;
-         case BIN(opt_ge):                      push(opt_binary (RubyHelper_vm_opt_ge,      getOperand(1))); _bcIndex += len; break;
-         case BIN(opt_ltlt):                    push(opt_binary (RubyHelper_vm_opt_ltlt,    getOperand(1))); _bcIndex += len; break;
+         case BIN(opt_lt):                      push(opt_binary (RubyHelper_vm_opt_lt,      getOperand(1), getOperand(2))); _bcIndex += len; break;
+         case BIN(opt_le):                      push(opt_binary (RubyHelper_vm_opt_le,      getOperand(1), getOperand(2))); _bcIndex += len; break;
+         case BIN(opt_gt):                      push(opt_binary (RubyHelper_vm_opt_gt,      getOperand(1), getOperand(2))); _bcIndex += len; break;
+         case BIN(opt_ge):                      push(opt_binary (RubyHelper_vm_opt_ge,      getOperand(1), getOperand(2))); _bcIndex += len; break;
+         case BIN(opt_ltlt):                    push(opt_binary (RubyHelper_vm_opt_ltlt,    getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_not):                     push(opt_unary  (RubyHelper_vm_opt_not,     getOperand(1))); _bcIndex += len; break;
-         case BIN(opt_aref):                    push(opt_binary (RubyHelper_vm_opt_aref,    getOperand(1))); _bcIndex += len; break;
+         case BIN(opt_aref):                    push(opt_binary (RubyHelper_vm_opt_aref,    getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_aset):                    push(opt_ternary(RubyHelper_vm_opt_aset,    getOperand(1))); _bcIndex += len; break;
          case BIN(opt_length):                  push(opt_unary  (RubyHelper_vm_opt_length,  getOperand(1))); _bcIndex += len; break;
          case BIN(opt_size):                    push(opt_unary  (RubyHelper_vm_opt_size,    getOperand(1))); _bcIndex += len; break;
@@ -1107,13 +1107,14 @@ RubyIlGenerator::opt_unary(TR_RuntimeHelper helper, VALUE ci)
    }
 
 TR::Node *
-RubyIlGenerator::opt_binary(TR_RuntimeHelper helper, VALUE ci)
+RubyIlGenerator::opt_binary(TR_RuntimeHelper helper, VALUE ci, VALUE cc)
    {
    TR::Node *obj  = pop();
    TR::Node *recv = pop();
-   return genCall(helper, TR::Node::xcallOp(), 4,
+   return genCall(helper, TR::Node::xcallOp(), 5,
                   loadThread(),
                   TR::Node::aconst((uintptr_t)ci),
+                  TR::Node::aconst((uintptr_t)cc),
                   recv,
                   obj);
    }
