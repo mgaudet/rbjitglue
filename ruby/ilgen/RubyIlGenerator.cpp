@@ -829,9 +829,10 @@ RubyIlGenerator::indexedWalker(int32_t startIndex, int32_t& firstIndex, int32_t&
          case BIN(jump):                        _bcIndex = jump(getOperand(1)); break;
          case BIN(branchif):                    _bcIndex = conditionalJump(true /* branchIfTrue*/, getOperand(1)); break;
          case BIN(branchunless):                _bcIndex = conditionalJump(false/*!branchIfTrue*/, getOperand(1)); break;
-         case BIN(getinlinecache):              _bcIndex = getinlinecache((OFFSET)getOperand(1), (IC) getOperand(2)); break;
+         // Disable inline cache opcodes until updated for 2.3 
+         // case BIN(getinlinecache):              _bcIndex = getinlinecache((OFFSET)getOperand(1), (IC) getOperand(2)); break;
 
-         case BIN(setinlinecache):              push(setinlinecache((IC)getOperand(1))); _bcIndex += len; break;
+         // case BIN(setinlinecache):              push(setinlinecache((IC)getOperand(1))); _bcIndex += len; break;
 
          case BIN(opt_regexpmatch1):            push(opt_regexpmatch1(getOperand(1))); _bcIndex += len; break;
          case BIN(opt_regexpmatch2):            push(opt_regexpmatch2((CALL_INFO)getOperand(1))); _bcIndex += len; break;
@@ -844,7 +845,7 @@ RubyIlGenerator::indexedWalker(int32_t startIndex, int32_t& firstIndex, int32_t&
          case BIN(opt_div):                     push(opt_binary (RubyHelper_vm_opt_div,     getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_mod):                     push(opt_binary (RubyHelper_vm_opt_mod,     getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_eq):                      push(opt_binary (RubyHelper_vm_opt_eq,      getOperand(1), getOperand(2))); _bcIndex += len; break;
-         case BIN(opt_neq):                     push(opt_neq    (RubyHelper_vm_opt_neq,     getOperand(1), getOperand(2))); _bcIndex += len; break;
+         case BIN(opt_neq):                     push(opt_neq    (RubyHelper_vm_opt_neq,     getOperand(1), getOperand(2), getOperand(3), getOperand(4))); _bcIndex += len; break;
          case BIN(opt_lt):                      push(opt_binary (RubyHelper_vm_opt_lt,      getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_le):                      push(opt_binary (RubyHelper_vm_opt_le,      getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_gt):                      push(opt_binary (RubyHelper_vm_opt_gt,      getOperand(1), getOperand(2))); _bcIndex += len; break;
@@ -1135,14 +1136,16 @@ RubyIlGenerator::opt_ternary(TR_RuntimeHelper helper, VALUE ci, VALUE cc)
    }
 
 TR::Node *
-RubyIlGenerator::opt_neq(TR_RuntimeHelper helper, VALUE ci, VALUE ci_eq)
+RubyIlGenerator::opt_neq(TR_RuntimeHelper helper, VALUE ci, VALUE cc, VALUE ci_eq, VALUE cc_eq)
    {
    TR::Node *obj  = pop();
    TR::Node *recv = pop();
-   return genCall(helper, TR::Node::xcallOp(), 5,
+   return genCall(helper, TR::Node::xcallOp(), 7,
                   loadThread(),
                   TR::Node::aconst((uintptr_t)ci),
+                  TR::Node::aconst((uintptr_t)cc),
                   TR::Node::aconst((uintptr_t)ci_eq),
+                  TR::Node::aconst((uintptr_t)cc_eq),
                   recv,
                   obj);
    }

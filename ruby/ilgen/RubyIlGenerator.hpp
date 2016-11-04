@@ -280,7 +280,7 @@ class RubyIlGenerator : public TR_IlGenerator, public TR_RubyByteCodeIteratorWit
    TR::Node *opt_binary    (TR_RuntimeHelper helper, VALUE ci, VALUE cc);
    TR::Node *opt_ternary   (TR_RuntimeHelper helper, VALUE ci, VALUE cc);
    TR::Node *opt_unary     (TR_RuntimeHelper helper, VALUE ci);
-   TR::Node *opt_neq       (TR_RuntimeHelper helper, VALUE ci, VALUE ci_eq);
+   TR::Node *opt_neq       (TR_RuntimeHelper helper, VALUE ci, VALUE cc, VALUE ci_eq, VALUE cc_eq);
    TR::Node *newhash       (rb_num_t num);
    TR::Node *newrange      (rb_num_t flag);
    TR::Node *newarray      (rb_num_t num);
