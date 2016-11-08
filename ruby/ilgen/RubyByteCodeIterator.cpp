@@ -72,10 +72,10 @@ TR_RubyByteCodeIterator::getLocalName(lindex_t index, const rb_iseq_t *iseq) con
 
    const ID *tbl = iseq->body->local_table;
    TR_ASSERT(tbl, "local_table must be non-null");
-   TR_ASSERT(index <= iseq->body->local_size, "invalid local index %d, iseq->local_size is %d",
-             index, iseq->body->local_size);
+   TR_ASSERT(index <= iseq->body->local_table_size, "invalid local index %d, iseq->local_size is %d",
+             index,   iseq->body->local_table_size);
 
-   int32_t tableIndex = iseq->body->local_size - index;
+   int32_t tableIndex = iseq->body->local_table_size - index;
 
    // Should call id_to_name instead of rb_id2name directly
    const char *name = fe()->id2name(tbl[tableIndex]);
@@ -110,7 +110,7 @@ TR_RubyByteCodeIterator::printLocalTable(rb_iseq_t const *iseq, int32_t const le
 
       for (int i = iseq->body->local_table_size-1; i >= 0; --i)
          {
-         lindex_t localIndex = iseq->body->local_size - i;
+         lindex_t localIndex = iseq->body->local_table_size - i;
          const char *name = getLocalName(localIndex, iseq);
 
          if (i == iseq->body->local_table_size-1) // if first-time
@@ -159,8 +159,8 @@ TR_RubyByteCodeIterator::printArgsTable(const rb_iseq_t *iseq) const
              "local table analysis not yet implemented for ruby v2.2.2\n");
 #else
    trfprintf(comp()->getOutFile(),
-             "local_size: %d argc: %d arg_size: %d, arg_simple: %x\n",
-             iseq->local_size,
+             "local_table_size: %d argc: %d arg_size: %d, arg_simple: %x\n",
+             iseq->local_table_size,
              iseq->argc,
              iseq->arg_size,
              iseq->arg_simple);

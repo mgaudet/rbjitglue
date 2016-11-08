@@ -95,7 +95,9 @@ RubyIlGenerator::RubyIlGenerator(TR::IlGeneratorMethodDetails &details,
    _epSymRef         = symRefTab.createRubyNamedShadowSymRef("ep",        TR::Address,            TR_RubyFE::SLOTSIZE, offsetof(rb_control_frame_t, ep),   true);
    _cfpSymRef        = symRefTab.createRubyNamedShadowSymRef("cfp",       TR::Address,            TR_RubyFE::SLOTSIZE, offsetof(rb_thread_t, cfp),         false);
    _spSymRef         = symRefTab.createRubyNamedShadowSymRef("sp",        TR::Address,            TR_RubyFE::SLOTSIZE, offsetof(rb_control_frame_t, sp),   true);
-   _flagSymRef       = symRefTab.createRubyNamedShadowSymRef("flag",      TR::Address,            TR_RubyFE::SLOTSIZE, offsetof(rb_control_frame_t, flag), true);
+   
+   // Disabled for 2.4 until cfp flag code can be rectified. 
+   // _flagSymRef       = symRefTab.createRubyNamedShadowSymRef("flag",      TR::Address,            TR_RubyFE::SLOTSIZE, offsetof(rb_control_frame_t, flag), true);
 
 
    // PC is being rematerialized before calls that may read/modify its value, so kill it across helper calls.
@@ -221,10 +223,13 @@ RubyIlGenerator::getVMExec(TR::Block * insertBlock)
 TR::Block *
 RubyIlGenerator::createVMExec(TR::Block * block)
    {
+#if 0 // This doesn't work yet for Ruby 2.4. 
+         // Side effect of disablement is purely RAS impact. 
    auto flag_xor = storeCFPFlag(TR::Node::xxor(
                                    TR::Node::xconst(VM_FRAME_FLAG_JITTED),
                                    loadCFPFlag()));
    genTreeTop(flag_xor,block);
+#endif
 
    // Call vm_exec_core and return returned value.
    auto * symRef = getHelperSymRef(RubyHelper_vm_exec_core);
@@ -2112,10 +2117,15 @@ RubyIlGenerator::loadPC()
 TR::Node *
 RubyIlGenerator::storeCFPFlag(TR::Node *val)
    {
+#if 0 
    return TR::Node::createWithSymRef(TR::astorei, 2, 2,
                             loadCFP(),
                             val,
                             _flagSymRef);
+#else
+   TR_ASSERT_FATAL(false, "not working for 2.4"); 
+   return NULL;
+#endif
    }
 
 TR::Node *

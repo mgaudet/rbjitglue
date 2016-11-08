@@ -131,7 +131,6 @@ initializeAllHelpers(struct rb_vm_struct *vm, TR_RubyJitConfig *jitConfig)
    initHelper(vm_invokesuper);
    initHelper(vm_invokeblock);
    */
-   initHelper(vm_get_block_ptr);
    initHelper(rb_method_entry);
    initHelper(rb_class_of);
    /*
