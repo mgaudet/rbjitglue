@@ -72,8 +72,8 @@ TR_RubyByteCodeIterator::getLocalName(lindex_t index, const rb_iseq_t *iseq) con
 
    const ID *tbl = iseq->body->local_table;
    TR_ASSERT(tbl, "local_table must be non-null");
-   TR_ASSERT(index <= iseq->body->local_table_size, "invalid local index %d, iseq->local_size is %d",
-             index,   iseq->body->local_table_size);
+   TR_ASSERT(index <= iseq->body->local_table_size + VM_ENV_DATA_SIZE, "invalid local index %d, iseq->local_size is %d, VM_ENV_DATA_SIZE is %d",
+             index,   iseq->body->local_table_size, VM_ENV_DATA_SIZE);
 
    int32_t tableIndex = iseq->body->local_table_size - index;
 
