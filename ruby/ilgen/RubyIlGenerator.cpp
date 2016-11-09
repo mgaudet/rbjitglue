@@ -1131,7 +1131,7 @@ RubyIlGenerator::opt_ternary(TR_RuntimeHelper helper, VALUE ci, VALUE cc)
    TR::Node *third= pop();
    TR::Node *obj  = pop();
    TR::Node *recv = pop();
-   return genCall(helper, TR::Node::xcallOp(), 5,
+   return genCall(helper, TR::Node::xcallOp(), 6,
                   loadThread(),
                   TR::Node::aconst((uintptr_t)ci),
                   TR::Node::aconst((uintptr_t)cc),
@@ -2158,6 +2158,7 @@ RubyIlGenerator::loadPrivateSP()
    return TR::Node::createLoad(_privateSPSymRef);
    }
 
+
 TR::Node *
 RubyIlGenerator::loadEP(rb_num_t level)
    {
@@ -2181,7 +2182,7 @@ RubyIlGenerator::loadPrevEP(TR::Node *ep)
    // We can provide better aliasing if we  use a specific shadow symbols
    // instead of generic-int-shadow
    TR::SymbolReference *shadow = comp()->getSymRefTab()->
-      findOrCreateGenericIntShadowSymbolReference(0, true /*allocUseDefBitVector*/);
+      findOrCreateGenericIntShadowSymbolReference(VM_ENV_DATA_INDEX_SPECVAL * sizeof(VALUE) , true /*allocUseDefBitVector*/);
 
    return TR::Node::xand(xloadi(shadow,
                   ep),
