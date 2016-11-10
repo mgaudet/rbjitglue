@@ -1686,40 +1686,29 @@ RubyIlGenerator::putspecialobject(rb_num_t value_type)
    {
    enum vm_special_object_type type = (enum vm_special_object_type) value_type;
 
+   TR_RuntimeHelper helper;
    //Check if we can support this value_type.
    switch(type)
       {
       case VM_SPECIAL_OBJECT_CBASE:
+         helper = RubyHelper_vm_get_cbase;
+         break; 
       case VM_SPECIAL_OBJECT_CONST_BASE:
+         helper = RubyHelper_vm_get_const_base;
+         break; 
       case VM_SPECIAL_OBJECT_VMCORE:
-         //We support these cases.
-         break;
+         // We can use RubyVMFrozenCore a compile time constant because:
+         // 1. the object outlives all compiled methods
+         // 2. objects are never moved by gc -- as long as that's true, 
+         //    the following is safe.
+         return TR::Node::aconst(*(uintptrj_t*)fe()->getJitInterface()->globals.ruby_rb_mRubyVMFrozenCore_ptr);
       default:
          logAbort("we do not support putspecialobject with this case","putspecialobject_value");
+         // unreachable. 
          break;
       }
 
-   if(type != VM_SPECIAL_OBJECT_VMCORE)
-      {
-      TR_RuntimeHelper helper = (type == VM_SPECIAL_OBJECT_CBASE) ?
-                                 RubyHelper_vm_get_cbase :
-                                 RubyHelper_vm_get_const_base;
-
-      return genCall(helper, TR::Node::xcallOp(), 2,
-            load_CFP_ISeq(),
-            loadEP());
-      }
-   else
-      {
-      TR_ASSERT(type == VM_SPECIAL_OBJECT_VMCORE, "putspecialobject in strange state.");
-
-      // We can use RubyVMFrozenCore a compile time constant because:
-      // 1. the object outlives all compiled methods
-      // 2. objects are never moved by gc -- as long as that's true, 
-      //    the following is safe.
-      TR::Node *value = TR::Node::aconst(*(uintptrj_t*)fe()->getJitInterface()->globals.ruby_rb_mRubyVMFrozenCore_ptr);
-      return value;
-      }
+      return genCall(helper, TR::Node::xcallOp(), 1, loadEP());
    }
 
 
@@ -1842,15 +1831,26 @@ RubyIlGenerator::getconstant(ID id)
                   TR::Node::xconst(0));
    }
 
+
 void
 RubyIlGenerator::setconstant(ID id)
    {
+   /* 
    auto cbase = pop();
    auto val   = pop();
    genCall(RubyHelper_vm_check_if_namespace, TR::call, 1,
            cbase);
    genCall(RubyHelper_rb_const_set, TR::call, 3,
            cbase, TR::Node::xconst(id), val);
+   */
+   auto cbase = pop();
+   auto val   = pop();
+   genCall(RubyHelper_vm_setconstant, TR::call, 4,
+           loadThread(), 
+           TR::Node::xconst(id),
+           val,
+           cbase
+           );
    }
 
 // RubyIlGenerator::genCall_funcallv(VALUE civ)

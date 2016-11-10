@@ -66,6 +66,7 @@ initializeAllHelpers(struct rb_vm_struct *vm, TR_RubyJitConfig *jitConfig)
    initHelper(vm_send);
    initHelper(vm_send_without_block);
    */
+   initHelper(vm_setconstant);
    initHelper(vm_getspecial);
    initHelper(lep_svar_set);
    initHelper(vm_getivar);
