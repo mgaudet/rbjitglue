@@ -1004,11 +1004,12 @@ RubyIlGenerator::setlocal(lindex_t idx, rb_num_t level)
    {
    // *(ep - idx) = val
    auto value = pop();
-   TR::Node *store = xstorei(getLocalSymRef(idx, level),
-                              loadEP(level),
-                              value);
-   genTreeTop(store);
-   return store;
+   // Currently need to call out to handle write barriers
+   // TODO: Consider inline wb generation!
+   return genCall(RubyHelper_rb_vm_env_write, TR::Node::xcallOp(), 3, 
+                 loadEP(level), 
+                 TR::Node::xconst(-1 * idx),
+                 value);
    }
 
 TR::Node *
