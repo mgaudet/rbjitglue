@@ -147,6 +147,7 @@ initializeAllHelpers(struct rb_vm_struct *vm, TR_RubyJitConfig *jitConfig)
    initHelper(vm_opt_aref_with);
    initHelper(vm_opt_aset_with);
    initHelper(rb_vm_env_write); 
+   initHelper(vm_jit_stack_check); 
    }
 
 static void

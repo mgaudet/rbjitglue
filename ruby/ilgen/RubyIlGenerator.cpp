@@ -2006,6 +2006,10 @@ RubyIlGenerator::genReturn(TR::Node *retval, bool popframe)
    // anchor retval before popping the frame
    genTreeTop(retval);
 
+   genCall(RubyHelper_vm_jit_stack_check, TR::call, 2, 
+           loadThread(),
+           loadCFP());
+
    if (popframe)
       {
       auto* cfp = generateCfpPop();
@@ -2013,6 +2017,7 @@ RubyIlGenerator::genReturn(TR::Node *retval, bool popframe)
       // th->cfp++;
       genTreeTop(cfp);
       }
+
 
    genTreeTop(TR::Node::create(TR::areturn, 1, retval));
    return findNextByteCodeToGen();
