@@ -1,4 +1,4 @@
-/*******************************************************************************
+/******************************************************************************
  *
  * (c) Copyright IBM Corp. 2000, 2016
  *
@@ -831,7 +831,7 @@ RubyIlGenerator::indexedWalker(int32_t startIndex, int32_t& firstIndex, int32_t&
 
          case BIN(toregexp):                    push(toregexp((rb_num_t)getOperand(1), (rb_num_t)getOperand(2))); _bcIndex += len; break;
 
-         case BIN(leave):                       _bcIndex = genReturn(pop()); break;
+         case BIN(leave):                       _bcIndex = genLeave(pop()); break;
          case BIN(throw):                       _bcIndex = genThrow((rb_num_t)getOperand(1), pop()); break;
          case BIN(jump):                        _bcIndex = jump(getOperand(1)); break;
          case BIN(branchif):                    _bcIndex = conditionalJump(true /* branchIfTrue*/, getOperand(1)); break;
@@ -1998,39 +1998,45 @@ RubyIlGenerator::generateCfpPop()
    return cfp;
    }
 
-int32_t
-RubyIlGenerator::genReturn(TR::Node *retval, bool popframe)
-   {
-   genAsyncCheck();
 
-   // anchor retval before popping the frame
+
+int32_t
+RubyIlGenerator::genLeave(TR::Node *retval)
+   {
    genTreeTop(retval);
 
+   rematerializeSP();
+
+   // This is a leave, so we should verify vm_jit_stack_check
+   //
    genCall(RubyHelper_vm_jit_stack_check, TR::call, 2, 
-           loadThread(),
-           loadCFP());
+              loadThread(),
+              loadCFP());
 
-   if (popframe)
-      {
-      auto* cfp = generateCfpPop();
-      // pop the frame
-      // th->cfp++;
-      genTreeTop(cfp);
-      }
+   genAsyncCheck();
 
+
+   // This is only legal if the frame is already maked as FINISH,
+   // which it should have been  
+   genTreeTop(generateCfpPop()); 
 
    genTreeTop(TR::Node::create(TR::areturn, 1, retval));
    return findNextByteCodeToGen();
-   }
+  }
 
 int32_t
 RubyIlGenerator::genThrow(rb_num_t throw_state, TR::Node *throwobj)
    {
-   TR::Node *val = genCall(RubyHelper_vm_throw, TR::Node::xcallOp(), 3,
+   genAsyncCheck();
+
+   TR::Node *val = genCall(RubyHelper_vm_throw, TR::Node::xcallOp(), 4,
                             loadThread(),
+                            loadCFP(),
                             TR::Node::xconst(throw_state),
                             throwobj);
-   return genReturn(val, false /*!popframe*/);
+
+   // THROW_EXCEPTION == return value. 
+   genTreeTop(TR::Node::create(TR::areturn, 1, val));
    }
 
 void

@@ -306,7 +306,7 @@ class RubyIlGenerator : public TR_IlGenerator, public TR_RubyByteCodeIteratorWit
    int32_t jump(int32_t offset);
    int32_t conditionalJump(bool branchIfTrue, int32_t offset);
    int32_t getinlinecache(OFFSET offset, IC ic);
-   int32_t genReturn(TR::Node *retval, bool popframe=true);
+   int32_t genLeave(TR::Node *retval);
    int32_t genThrow(rb_num_t throw_state, TR::Node *throwobj);
    int32_t genGoto(int32_t target);
    void    genAsyncCheck();
