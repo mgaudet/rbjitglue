@@ -2029,9 +2029,8 @@ RubyIlGenerator::genThrow(rb_num_t throw_state, TR::Node *throwobj)
    {
    genAsyncCheck();
 
-   TR::Node *val = genCall(RubyHelper_vm_throw, TR::Node::xcallOp(), 4,
+   TR::Node *val = genCall(RubyHelper_vm_throw, TR::Node::xcallOp(), 3,
                             loadThread(),
-                            loadCFP(),
                             TR::Node::xconst(throw_state),
                             throwobj);
 
