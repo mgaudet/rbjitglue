@@ -2037,6 +2037,7 @@ RubyIlGenerator::genThrow(rb_num_t throw_state, TR::Node *throwobj)
 
    // THROW_EXCEPTION == return value. 
    genTreeTop(TR::Node::create(TR::areturn, 1, val));
+   return findNextByteCodeToGen();
    }
 
 void
