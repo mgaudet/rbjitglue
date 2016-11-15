@@ -865,10 +865,10 @@ RubyIlGenerator::indexedWalker(int32_t startIndex, int32_t& firstIndex, int32_t&
          case BIN(opt_size):                    push(opt_unary  (RubyHelper_vm_opt_size,    getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_empty_p):                 push(opt_unary  (RubyHelper_vm_opt_empty_p, getOperand(1), getOperand(2))); _bcIndex += len; break;
          case BIN(opt_succ):                    push(opt_unary  (RubyHelper_vm_opt_succ,    getOperand(1), getOperand(2))); _bcIndex += len; break;
-         case BIN(opt_aset_with):               push(aset_with((CALL_INFO)getOperand(1), (VALUE)getOperand(2)));
+         case BIN(opt_aset_with):               push(aset_with((CALL_INFO)getOperand(1), (CALL_CACHE)getOperand(2), (VALUE)getOperand(3)));
                                                 _bcIndex += len;
                                                 break;
-         case BIN(opt_aref_with):               push(aref_with((CALL_INFO)getOperand(1), (VALUE)getOperand(2), (VALUE)getOperand(3)));
+         case BIN(opt_aref_with):               push(aref_with((CALL_INFO)getOperand(1), (CALL_CACHE)getOperand(2), (VALUE)getOperand(3)));
                                                 _bcIndex += len;
                                                 break;
 
@@ -1024,7 +1024,7 @@ RubyIlGenerator::getinstancevariable(VALUE id, VALUE ic)
    }
 
 TR::Node *
-RubyIlGenerator::aset_with(CALL_INFO ci, VALUE key)
+RubyIlGenerator::aset_with(CALL_INFO ci, CALL_CACHE cc, VALUE key)
    {
    // Pop order matters
    auto* val    = pop();
@@ -1032,12 +1032,15 @@ RubyIlGenerator::aset_with(CALL_INFO ci, VALUE key)
 
    //Shortcut by using xconst asuming sizes are correct
    static_assert(sizeof(ci) == sizeof(VALUE), "CI can't use xconst");
+   static_assert(sizeof(cc) == sizeof(CALL_CACHE), "CC can't use xconst");
    auto * ci_n  = TR::Node::xconst((uintptr_t)ci);
+   auto * cc_n  = TR::Node::xconst((uintptr_t)ci);
    auto * key_n = TR::Node::xconst((uintptr_t)key);
 
-   return genCall(RubyHelper_vm_opt_aset_with, TR::Node::xcallOp(), 5,
+   return genCall(RubyHelper_vm_opt_aset_with, TR::Node::xcallOp(), 6,
                   loadThread(),
                   ci_n,
+                  cc_n,
                   key_n,
                   recv,
                   val);
@@ -1045,7 +1048,7 @@ RubyIlGenerator::aset_with(CALL_INFO ci, VALUE key)
    }
 
 TR::Node *
-RubyIlGenerator::aref_with(CALL_INFO ci, VALUE cc, VALUE key)
+RubyIlGenerator::aref_with(CALL_INFO ci, CALL_CACHE cc, VALUE key)
    {
    auto* recv   = pop();
 

@@ -298,8 +298,8 @@ class RubyIlGenerator : public TR_IlGenerator, public TR_RubyByteCodeIteratorWit
    TR::Node *opt_regexpmatch1(VALUE r);
    TR::Node *opt_regexpmatch2(CALL_INFO ci, VALUE cc);
    TR::Node *defined       (rb_num_t op_type, VALUE obj, VALUE needstr);
-   TR::Node *aref_with     (CALL_INFO, VALUE, VALUE);
-   TR::Node *aset_with     (CALL_INFO, VALUE);
+   TR::Node *aref_with     (CALL_INFO, CALL_CACHE, VALUE);
+   TR::Node *aset_with     (CALL_INFO, CALL_CACHE, VALUE);
    void       trace        (rb_num_t nf);
 
    // Control flow
