@@ -1034,7 +1034,7 @@ RubyIlGenerator::aset_with(CALL_INFO ci, CALL_CACHE cc, VALUE key)
    static_assert(sizeof(ci) == sizeof(VALUE), "CI can't use xconst");
    static_assert(sizeof(cc) == sizeof(CALL_CACHE), "CC can't use xconst");
    auto * ci_n  = TR::Node::xconst((uintptr_t)ci);
-   auto * cc_n  = TR::Node::xconst((uintptr_t)ci);
+   auto * cc_n  = TR::Node::xconst((uintptr_t)cc);
    auto * key_n = TR::Node::xconst((uintptr_t)key);
 
    return genCall(RubyHelper_vm_opt_aset_with, TR::Node::xcallOp(), 6,
