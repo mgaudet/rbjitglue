@@ -314,17 +314,16 @@ class RubyIlGenerator : public TR_IlGenerator, public TR_RubyByteCodeIteratorWit
    void    rematerializeSP();
    TR::Node *generateCfpPop();
 
-// void    genRubyPush(TR::Node *v);
 
    TR::Node *genCall(TR_RuntimeHelper helper, TR::ILOpCodes opcode, int32_t num, ...);
-   // TR::Node *genCall_preparation(VALUE ci, uint32_t numArgs, int32_t& restores, int32_t& pending);
-   // TR::Node *genCall_funcallv(VALUE ci);
+   TR::Node *genCall_preparation(CALL_INFO ci, uint32_t numArgs, int32_t& restores, int32_t& pending);
+   TR::Node *genCall_funcallv(VALUE ci);
    void cleanupStack(int32_t restores, int32_t pending);
 
-   // TR::Node *genSend(VALUE civ);
-   // TR::Node *genSendWithoutBlock(VALUE civ);
-   // TR::Node *genInvokeSuper(VALUE civ); 
-   // TR::Node *genInvokeBlock(VALUE civ); 
+   TR::Node *genSend            (CALL_INFO ci, CALL_CACHE cc, ISEQ blockiseq);
+   TR::Node *genSendWithoutBlock(CALL_INFO ci, CALL_CACHE cc);
+   TR::Node *genInvokeSuper     (CALL_INFO ci, CALL_CACHE cc, ISEQ blockiseq); 
+   TR::Node *genInvokeBlock     (CALL_INFO ci); 
 
    // void     dumpCallInfo(CALL_INFO);
 

@@ -62,10 +62,8 @@ initializeAllHelpers(struct rb_vm_struct *vm, TR_RubyJitConfig *jitConfig)
 #endif
 
    initHelper(rb_funcallv);
-   /*
    initHelper(vm_send);
    initHelper(vm_send_without_block);
-   */
    initHelper(vm_setconstant);
    initHelper(vm_getspecial);
    initHelper(lep_svar_set);
@@ -128,10 +126,8 @@ initializeAllHelpers(struct rb_vm_struct *vm, TR_RubyJitConfig *jitConfig)
    initHelper(vm_opt_regexpmatch1);
    initHelper(vm_opt_regexpmatch2);
    initHelper(vm_defined);
-   /*
    initHelper(vm_invokesuper);
    initHelper(vm_invokeblock);
-   */
    initHelper(rb_method_entry);
    initHelper(rb_class_of);
    /*
