@@ -1328,7 +1328,7 @@ RubyIlGenerator::genSend(CALL_INFO ci, CALL_CACHE cc, ISEQ blockiseq)
                              pending
                              ); 
 
-   auto * callNode = genCall(RubyHelper_vm_send, TR::Node::xcallOp(), 3,
+   auto * callNode = genCall(RubyHelper_vm_send, TR::Node::xcallOp(), 5,
                       loadThread(),
                       TR::Node::aconst((uintptr_t)ci),
                       TR::Node::aconst((uintptr_t)cc),
