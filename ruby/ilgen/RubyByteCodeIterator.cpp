@@ -22,6 +22,7 @@
 #include "insns_info.inc"
 #include "ruby/version.h"
 #include "env/IO.hpp"
+#include "vm_core.h"
 
 RubyByteCode TR_RubyByteCodeIterator::at(int32_t index) const
    {
@@ -287,14 +288,21 @@ TR_RubyByteCodeIterator::printByteCode()
                if(ci->flag > 0)
                   {
                   trfprintf(comp()->getOutFile(), " (");
-                  (ci->flag & (0x01 << 1)) ? trfprintf(comp()->getOutFile(), "VM_CALL_ARGS_SPLAT|")          : 0;
-                  (ci->flag & (0x01 << 2)) ? trfprintf(comp()->getOutFile(), "VM_CALL_ARGS_BLOCKARG|")       : 0;
-                  (ci->flag & (0x01 << 3)) ? trfprintf(comp()->getOutFile(), "VM_CALL_ARGS_FCALL|")          : 0;
-                  (ci->flag & (0x01 << 4)) ? trfprintf(comp()->getOutFile(), "VM_CALL_ARGS_VCALL|")          : 0;
-                  (ci->flag & (0x01 << 5)) ? trfprintf(comp()->getOutFile(), "VM_CALL_ARGS_TAILCALL|")       : 0;
-                  (ci->flag & (0x01 << 6)) ? trfprintf(comp()->getOutFile(), "VM_CALL_ARGS_SUPER|")          : 0;
-                  (ci->flag & (0x01 << 7)) ? trfprintf(comp()->getOutFile(), "VM_CALL_ARGS_OPT_SEND|")       : 0;
-                  (ci->flag & (0x01 << 8)) ? trfprintf(comp()->getOutFile(), "VM_CALL_ARGS_ARGS_SKIP_SETUP|") : 0;
+#define PRINTCIFLAG(FLAG) \
+                  (ci->flag & (FLAG) ) ? trfprintf(comp()->getOutFile(), #FLAG "|")       : 0
+
+                  PRINTCIFLAG(VM_CALL_ARGS_SPLAT   ); 
+                  PRINTCIFLAG(VM_CALL_ARGS_BLOCKARG); 
+                  PRINTCIFLAG(VM_CALL_FCALL        ); 
+                  PRINTCIFLAG(VM_CALL_VCALL        ); 
+                  PRINTCIFLAG(VM_CALL_ARGS_SIMPLE  ); 
+                  PRINTCIFLAG(VM_CALL_BLOCKISEQ    ); 
+                  PRINTCIFLAG(VM_CALL_KWARG        ); 
+                  PRINTCIFLAG(VM_CALL_TAILCALL     ); 
+                  PRINTCIFLAG(VM_CALL_SUPER        ); 
+                  PRINTCIFLAG(VM_CALL_OPT_SEND     ); 
+
+#undef PRINTCIFLAG
                   trfprintf(comp()->getOutFile(), "0x0");
                   trfprintf(comp()->getOutFile(), ")");
                   }
