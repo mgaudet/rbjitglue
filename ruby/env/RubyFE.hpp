@@ -57,7 +57,7 @@ class TR_RubyFE : public TR::FEBase<TR_RubyFE>
    static const size_t DEFAULT_SEG_SIZE = TR::FETraits<TR_RubyFE>::DEFAULT_SEG_SIZE;
    static const size_t SLOTSIZE         = TR::FETraits<TR_RubyFE>::SLOTSIZE;
 
-   static TR::DataTypes slotType()
+   static TR::DataType slotType()
       { return SLOTSIZE == 8 ? TR::Int64 : TR::Int32; }
 
 

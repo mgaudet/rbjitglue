@@ -59,7 +59,7 @@ Ruby::IlFastpather::IlFastpather(TR::OptimizationManager *manager)
    {
 
    //Initialize VMEventFlag SymRef.
-   TR::DataTypes dt = TR::NoType;
+   TR::DataType dt = TR::NoType;
    switch (sizeof(rb_event_flag_t))
       {
       case 4:
@@ -343,7 +343,7 @@ Ruby::IlFastpather::fastpathPlusMinus(TR::TreeTop *tt, TR::Node *node, bool isPl
    gotoNode->setBranchDestination(Btail->getEntry());
 
    // Now change the original call node in Btail to be a load
-   node = TR::Node::recreateAndCopyValidProperties(node,  
+   node = TR::Node::recreate(node,  
       TR::Node::xloadOp(static_cast<TR_RubyFE*>(TR::comp()->fe())));
 
    node->setSymbolReference(tempResult);

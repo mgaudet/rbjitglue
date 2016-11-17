@@ -154,8 +154,9 @@ RubyIlGenerator::logAbort(const char * logMessage,
    TR::DebugCounter::incStaticDebugCounter(comp(), TR::DebugCounter::debugCounterName(comp(), "compilation_abort/%s/%s",
                                                           counterReason,
                                                           counterSubreason));
-   fe()->outOfMemory(comp(), logMessage);
-   TR_ASSERT(0, "Compilation abort failed! %s", logMessage);
+
+   traceMsg(comp(), logMessage);
+   throw TR::CompilationException();
    }
 
 

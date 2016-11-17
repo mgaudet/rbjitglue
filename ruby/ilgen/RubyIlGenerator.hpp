@@ -216,9 +216,9 @@ class RubyIlGenerator : public TR_IlGenerator, public TR_RubyByteCodeIteratorWit
    TR::SymbolReference *getStackSymRef(int32_t stackHeight);
    TR::SymbolReference *getLocalSymRef(lindex_t idx, rb_num_t level);
    TR::SymbolReference *getHelperSymRef(TR_RuntimeHelper helper);
-   TR::SymbolReference *createShadowSymRef(char *name, TR::DataTypes dt, size_t size,
+   TR::SymbolReference *createShadowSymRef(char *name, TR::DataType dt, size_t size,
                                           int32_t offset, bool killedAcrossCalls);
-   TR::SymbolReference *createStaticSymRef(char *name, TR::DataTypes dt,
+   TR::SymbolReference *createStaticSymRef(char *name, TR::DataType dt,
                                           void *addr, bool killedAcrossCalls);
 
    TR::Block *createBug(TR::Block*,const char *, int32_t, ...); 

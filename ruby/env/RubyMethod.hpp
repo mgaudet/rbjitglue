@@ -97,7 +97,7 @@ class ResolvedRubyMethodBase : public TR_ResolvedMethod
    virtual void *                resolvedMethodAddress() {   return (void *)getPersistentIdentifier(); }
 
    virtual uint16_t              numberOfParameterSlots() { return 1; }
-   virtual TR::DataTypes         parmType(uint32_t slot)  { return TR::Address; }
+   virtual TR::DataType          parmType(uint32_t slot)  { return TR::Address; }
    virtual uint16_t              numberOfTemps()          { return 0; } 
 
    virtual uint32_t              maxBytecodeIndex() { return _method.size(); }
@@ -141,7 +141,7 @@ public:
    virtual bool        isConstructor() { return false; }
    virtual bool        isFinalInObject() { return false; }
    virtual bool        isNonEmptyObjectConstructor() { return false; }
-   virtual TR::DataTypes        returnType()                           { return TR::NoType; }
+   virtual TR::DataType        returnType()                           { return TR::NoType; }
    };
 
 #endif
